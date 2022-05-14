@@ -1,4 +1,7 @@
 package com.example.posedetection
 
-class Train {
-}
+data class Trains(
+    val name: String,
+    val price: String,
+    val image: Int
+)

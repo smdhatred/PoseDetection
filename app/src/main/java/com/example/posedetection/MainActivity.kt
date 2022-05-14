@@ -15,6 +15,7 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
@@ -48,6 +49,7 @@ import com.google.mlkit.vision.pose.PoseDetector
 import com.google.mlkit.vision.pose.PoseLandmark
 import com.google.mlkit.vision.pose.defaults.PoseDetectorOptions
 
+@ExperimentalFoundationApi
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,10 +76,14 @@ class MainActivity : ComponentActivity() {
     private fun initView()
     {
         setContent {
+
             PoseDetectionTheme {
                 // A surface container using the 'background' color from the theme
+
                 Surface(color = MaterialTheme.colors.background) {
-                    CameraPreview(cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA)
+                    FirstScreen()
+                    //DashboardScreen()
+                    //CameraPreview(cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA)
                 }
             }
         }
