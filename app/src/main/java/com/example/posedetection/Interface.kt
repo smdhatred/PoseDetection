@@ -1,8 +1,10 @@
 package com.example.posedetection
 
+import androidx.camera.core.CameraSelector
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -28,46 +30,67 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+//import androidx.navigation.compose.navigate
+import androidx.navigation.compose.rememberNavController
 
 
-@ExperimentalFoundationApi
+
 @Composable
-fun DashboardScreen() {
+fun DashboardScreen(navController: NavController) {
 
-    LazyColumn(
-        content = {
-            stickyHeader {
-                //Toolbar()
-                //ImageHeader()
-                PopularFlowersList()
-            }
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ){
+        PopularFlowersList(navController)
+    }
 
-        },
-        modifier = Modifier.fillMaxSize()
-    )
+//    LazyColumn(
+//        content = {
+//            stickyHeader {
+//                //Toolbar()
+//                //ImageHeader()
+//                PopularFlowersList()
+//            }
+//
+//        },
+//        modifier = Modifier.fillMaxSize()
+//    )
 
 }
 
 @Composable
-private fun PopularFlowersList() {
+private fun PopularFlowersList(navController: NavController) {
     LazyRow(
         modifier = Modifier.fillMaxWidth()
     ) {
         items(TrainsData.list) { item ->
-            TrainCard(item)
+            TrainCard(item,navController)
         }
     }
 }
+var nameTrain = ""
+var infoTrain= ""
 
 @Composable
-fun TrainCard(train: Trains)
+fun TrainCard(train: Trains,navController: NavController)
 {
+    //val navController = rememberNavController()
+    var info: String = "test"
     Card(
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(20.dp),
         backgroundColor = Color.White,
         modifier = Modifier
             .padding(10.dp)
             .width(180.dp)
+            .clickable {
+                infoTrain = train.price
+                navController.navigate("Info")
+            }
     ) {
         Column(
             modifier = Modifier
@@ -97,7 +120,10 @@ fun TrainCard(train: Trains)
                     )
                 }
                 IconButton(
-                    onClick = { },
+                    onClick = {
+                        navController.navigate("Train")
+                        nameTrain=train.name
+                    },
                     modifier = Modifier.background(
                         color = Color.DarkGray,
                         shape = RoundedCornerShape(10.dp)
@@ -107,36 +133,24 @@ fun TrainCard(train: Trains)
                 }
             }
         }
+
     }
 }
 
 @Composable
-fun ImageHeader()
+fun CardInfo(info: String)
 {
-    Box(
-        modifier = Modifier
-            .background(color = Color.Gray)
-            .height(300.dp)
-            .fillMaxWidth()
-    )
-}
-
-@Composable
-fun Toolbar() {
-    Row(
-        modifier = Modifier
-            .height(44.dp)
-            .fillMaxWidth()
-            .background(color = MaterialTheme.colors.background)
-    ) {
-        Text("Back", modifier = Modifier.weight(1f))
-        Text("Menu")
+    Box(modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center )
+    {
+        Column {
+            Text(text = info)
+        }
     }
 }
 
-@ExperimentalFoundationApi
 @Composable
-fun FirstScreen() {
+fun FirstScreen(navController: NavController) {
     val selectedIndex = remember { mutableStateOf(0) }
     Surface(modifier = Modifier.fillMaxSize()) {
 
@@ -148,20 +162,18 @@ fun FirstScreen() {
                 Surface(modifier = Modifier.fillMaxSize(), color = Color.DarkGray) {
                     Card(
                         backgroundColor = Color.LightGray,
-                        shape = RoundedCornerShape(40.dp),
+                        shape = RoundedCornerShape(20.dp),
                         modifier = Modifier.fillMaxSize(),
                     ) {
                         Box(modifier = Modifier.padding(bottom = 96.dp)) {
                             when (selectedIndex.value) {
                                 0 -> {
-                                    DashboardScreen()
+                                    DashboardScreen(navController)
                                 }
                                 1 -> {
+                                    CameraPreview(cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA,train = "Что это?")
                                 }
-                                2 -> {
-                                }
-                                3 -> {
-                                }
+
                             }
                         } //bodyContent()
 
@@ -211,7 +223,7 @@ fun CustomTopAppBar() {
 @Composable
 fun CustomBottomBar(selectedIndex: MutableState<Int>) {
 
-    val listItems = listOf("Home", "Location", "Cart", "Profile")
+    val listItems = listOf("Home", "Location")
 
     Card(
         elevation = 0.dp,
