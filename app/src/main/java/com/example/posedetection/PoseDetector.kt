@@ -1,5 +1,6 @@
 package com.example.posedetection
 
+import android.R.attr
 import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
@@ -41,6 +42,12 @@ import com.google.mlkit.vision.pose.PoseDetection
 import com.google.mlkit.vision.pose.PoseDetector
 import com.google.mlkit.vision.pose.PoseLandmark
 import com.google.mlkit.vision.pose.defaults.PoseDetectorOptions
+import android.R.attr.y
+
+import android.R.attr.x
+import android.graphics.Point
+import android.util.Log.DEBUG
+
 
 @Composable
 fun CameraPreview(cameraSelector: CameraSelector,
@@ -238,8 +245,26 @@ fun DetectedPose(
 
 
 @Composable
-fun PoseCompare( pose: Pose?,)
+fun PoseCompare(pose: Pose?)
 {
+
+    val pointsConst = mutableListOf<Offset>()
+
+    val points = mutableListOf<Offset>()
+
+    val pointsTest = mutableListOf<Offset>()
+    pointsTest.add(Offset(300F,200F))
+
+    //points.add(Offset(x.toFloat(), y.toFloat()))
+    pointsConst.add(Offset(200F,100F))
+    if (pose != null) {
+        val leftWrist = pose?.getPoseLandmark(PoseLandmark.LEFT_WRIST)
+        val Xlw = leftWrist.position.x
+        val Ylw = leftWrist.position.y
+        points.add(Offset(Xlw,Ylw))
+    }
+
+
     if (pose != null) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val strokeWidth = 1.dp.toPx()
@@ -252,7 +277,7 @@ fun PoseCompare( pose: Pose?,)
             val rightShoulder = pose.getPoseLandmark(PoseLandmark.RIGHT_SHOULDER)
             val leftElbow = pose.getPoseLandmark(PoseLandmark.LEFT_ELBOW)
             val rightElbow = pose.getPoseLandmark(PoseLandmark.RIGHT_ELBOW)
-            val leftWrist = pose.getPoseLandmark(PoseLandmark.LEFT_WRIST)
+            //val leftWrist = pose.getPoseLandmark(PoseLandmark.LEFT_WRIST)
             val rightWrist = pose.getPoseLandmark(PoseLandmark.RIGHT_WRIST)
             val leftHip = pose.getPoseLandmark(PoseLandmark.LEFT_HIP)
             val rightHip = pose.getPoseLandmark(PoseLandmark.RIGHT_HIP)
@@ -274,35 +299,38 @@ fun PoseCompare( pose: Pose?,)
 
 
 
-            //drawPoint()
 
-//            fun drawPoint(
-//                point: PoseLandmark?,
-//                paint: Brush
-//            ) {
-//
-//                if (point != null ) {
-//                    val startX = point.position.x
-//                    val startY = point.position.y
-//
-//                    drawPoint(
-//                        start = Offset(startX, startY),
-//                        pointMode = Points,
-//                        brush = paint
-//
-//
-//                    )
-//                }
-//                drawPoint(
-//                    brush = paint,
-//                    start = Offset(startX, startY),
-//
-//
-//
-//                )
+            fun drawPoint(
+                point: List<Offset>
+
+            ) {
+
+                    drawPoints(
+
+                        points = point,
+                        strokeWidth = 60f,
+                        pointMode = Points,
+                        color = Color.Blue
+
+
+                    )
+
+            }
+            drawPoint(pointsConst)
+            if( (points[0].x>=200 && points[0].x<=300)&&(points[0].y>=100 && points[0].y<=200))
+            {
+                drawPoint(pointsTest)
+            }
         }
 
     }
+
+
+
+
+
+
+
 }
 
 
