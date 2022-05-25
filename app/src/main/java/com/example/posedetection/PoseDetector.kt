@@ -1,6 +1,5 @@
 package com.example.posedetection
 
-import android.R.attr
 import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
@@ -42,19 +41,39 @@ import com.google.mlkit.vision.pose.PoseDetection
 import com.google.mlkit.vision.pose.PoseDetector
 import com.google.mlkit.vision.pose.PoseLandmark
 import com.google.mlkit.vision.pose.defaults.PoseDetectorOptions
-import android.R.attr.y
 
 import android.R.attr.x
 import android.graphics.Point
 import android.util.Log.DEBUG
+import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.google.firebase.events.Event
+import com.google.firebase.events.EventHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import java.util.*
 
 
 @Composable
-fun CameraPreview(cameraSelector: CameraSelector,
-                  modifier: Modifier = Modifier,
-                  train: String
+fun CameraView(
+    cameraSelector: CameraSelector,
+    modifier: Modifier = Modifier,
+    train: String,
+    trainPoints: List<Offset>?,
+    navController: NavController
+
 )
 {
+
+    //val viewState = poseDetectorViewModel.viewState
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
     var sourceInfo by remember { mutableStateOf(SourceInfo(10, 10, false)) }
@@ -87,22 +106,107 @@ fun CameraPreview(cameraSelector: CameraSelector,
             )
             {
                 CameraPreview(previewView)
-                PoseCompare(pose = detectedPose)
-                Test(train)
+                PoseCompare(pose = detectedPose,trainPoints = trainPoints, navController)
+                Test(train, Alignment.BottomCenter)
                 DetectedPose(pose = detectedPose, sourceInfo = sourceInfo)
+
+                //Timer(totalTime = 100L * 1000L, modifier = Modifier.size(200.dp))
             }
         }
     }
 }
 
+
+
+
+
+
 @Composable
-fun Test(train: String)
+fun Timer(
+
+    // total time of the timer
+    totalTime: Long,
+    timerStart: Boolean,
+    modifier: Modifier = Modifier,
+    // set initial value to 1
+    initialValue: Float = 1f,
+    onTimerFinish:(Boolean) -> Unit
+
+) {
+    // create variable for
+    var timerIsStart by remember {
+        mutableStateOf(timerStart)
+    }
+    var timerIsFinish by remember {
+        mutableStateOf(false)
+    }
+    // size of the composable
+    var size by remember {
+        mutableStateOf(IntSize.Zero)
+    }
+    // create variable for value
+    var value by remember {
+        mutableStateOf(initialValue)
+    }
+    // create variable for current time
+    var currentTime by remember {
+        mutableStateOf(totalTime)
+    }
+    // create variable for isTimerRunning
+    var isTimerRunning by remember {
+        mutableStateOf(false)
+    }
+    LaunchedEffect(key1 = currentTime, key2 = isTimerRunning) {
+        if(currentTime > 0 && isTimerRunning) {
+            delay(100L)
+            currentTime -= 100L
+            value = currentTime / totalTime.toFloat()
+        }
+    }
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .onSizeChanged {
+                size = it
+            }
+    ) {
+
+        // add value of the timer
+        Text(
+            text = (currentTime / 1000L).toString(),
+            fontSize = 44.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
+        // create button to start or stop the timer
+        if(timerIsStart) {
+            timerIsStart=false
+            if (currentTime <= 0L) {
+                currentTime = totalTime
+                isTimerRunning = true
+            } else {
+                isTimerRunning = !isTimerRunning
+            }
+        }
+        if(currentTime==0L) {
+            Test(train = "Well Done", Alignment.TopCenter)
+            //timerIsFinish -> onTimerFinish(timerIsFinish)
+            timerIsFinish=true
+            onTimerFinish(timerIsFinish)
+        }
+    }
+}
+
+
+
+@Composable
+fun Test(train: String, alignment: Alignment )
 {
     Box(
         modifier = Modifier
             .fillMaxSize(),
 
-        contentAlignment = Alignment.BottomCenter,
+        contentAlignment = alignment,
     ) {
         Text(text = train)
     }
@@ -245,27 +349,48 @@ fun DetectedPose(
 
 
 @Composable
-fun PoseCompare(pose: Pose?)
+fun PoseCompare(pose: Pose?, trainPoints: List<Offset>?,navController: NavController)
 {
+    if (pose!=null)
+    {
+    //Контрольные точки
+//    val pointsConst = mutableListOf<Offset>()
+//    pointsConst.add(Offset(200F,100F))
+//    pointsConst.add(Offset(400F,100F))
 
-    val pointsConst = mutableListOf<Offset>()
+    var TimerStart by remember {
+        mutableStateOf(false)
 
+    }
+    var TimerFinish by remember { mutableStateOf<Boolean>(false) }
+
+    //Значения с камеры
     val points = mutableListOf<Offset>()
 
+
     val pointsTest = mutableListOf<Offset>()
-    pointsTest.add(Offset(300F,200F))
+    pointsTest.add(Offset(300F,600F))
+
 
     //points.add(Offset(x.toFloat(), y.toFloat()))
-    pointsConst.add(Offset(200F,100F))
-    if (pose != null) {
-        val leftWrist = pose?.getPoseLandmark(PoseLandmark.LEFT_WRIST)
-        val Xlw = leftWrist.position.x
-        val Ylw = leftWrist.position.y
-        points.add(Offset(Xlw,Ylw))
-    }
 
 
-    if (pose != null) {
+
+        if(pose!=null) {
+
+            val leftWrist = pose.getPoseLandmark(PoseLandmark.LEFT_WRIST)
+            val Xlw = leftWrist.position.x
+            val Ylw = leftWrist.position.y
+            points.add(Offset(Xlw, Ylw))
+
+            val rightWrist = pose.getPoseLandmark(PoseLandmark.RIGHT_WRIST)
+            val Xrw = rightWrist.position.x
+            val Yrw = rightWrist.position.y
+            points.add(Offset(Xrw, Yrw))
+
+        }
+
+
         Canvas(modifier = Modifier.fillMaxSize()) {
             val strokeWidth = 1.dp.toPx()
             val whitePaint = SolidColor(Color.White)
@@ -298,39 +423,47 @@ fun PoseCompare(pose: Pose?)
             val rightFootIndex = pose.getPoseLandmark(PoseLandmark.RIGHT_FOOT_INDEX)
 
 
-
-
             fun drawPoint(
                 point: List<Offset>
 
             ) {
 
-                    drawPoints(
+                drawPoints(
 
-                        points = point,
-                        strokeWidth = 60f,
-                        pointMode = Points,
-                        color = Color.Blue
+                    points = point,
+                    strokeWidth = 50F,
+                    pointMode = Points,
+                    color = Color.Blue
 
 
-                    )
+                )
 
             }
-            drawPoint(pointsConst)
-            if( (points[0].x>=200 && points[0].x<=300)&&(points[0].y>=100 && points[0].y<=200))
-            {
-                drawPoint(pointsTest)
+            if (trainPoints != null) {
+                drawPoint(trainPoints)
+
+
+                if (((points[0].x >= trainPoints[0].x - 50F) && (points[0].x <= trainPoints[0].x + 50F)) && ((points[0].y >= trainPoints[0].y - 50F) && (points[0].y <= trainPoints[0].y + 50F))
+                    || ((points[1].x >= trainPoints[1].x - 50F) && (points[1].x <= trainPoints[1].x + 50F)) && ((points[1].y >= trainPoints[1].y - 50F) && (points[1].y <= trainPoints[1].y + 50F))
+                ) {
+                    drawPoint(pointsTest)
+                    TimerStart=true
+
+                }
+                else{
+                   TimerStart=false
+                }
             }
         }
+        if(TimerFinish)
+        {
+            TimerStart=false
+        }
 
+        if(TimerStart) {
+            Timer(totalTime = 5L * 1000L, modifier = Modifier.size(200.dp),timerStart = TimerStart, onTimerFinish = { TimerFinish = it })
+        }
     }
-
-
-
-
-
-
-
 }
 
 

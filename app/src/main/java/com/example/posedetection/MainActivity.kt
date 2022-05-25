@@ -7,11 +7,15 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.camera.core.CameraSelector
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -51,6 +55,7 @@ class MainActivity : ComponentActivity() {
 fun initView()
 {
 
+
     val navController = rememberNavController()
         PoseDetectionTheme {
             // A surface container using the 'background' color from the theme
@@ -61,8 +66,9 @@ fun initView()
                 NavHost(navController = navController, startDestination = "First Screen")
                 {
                     composable("First Screen"){ FirstScreen(navController) }
-                    composable("Train"){ CameraPreview(cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA,train = nameTrain) }
+                    composable("Train"){ CameraView(cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA, train = nameTrain, trainPoints =pointsTrain, navController = navController)}
                     composable("Info"){ CardInfo(infoTrain)}
+
                 }
                 // FirstScreen()
 
