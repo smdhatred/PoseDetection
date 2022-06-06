@@ -6,5 +6,6 @@ data class Train(
     val name: String,
     val price: String,
     val image: Int,
-    val pointsConst: List<Offset>
+    val info: String,
+    val pointsConst: List<List<Offset>>
 )

@@ -42,24 +42,12 @@ import com.google.mlkit.vision.pose.PoseDetector
 import com.google.mlkit.vision.pose.PoseLandmark
 import com.google.mlkit.vision.pose.defaults.PoseDetectorOptions
 
-import android.R.attr.x
-import android.graphics.Point
-import android.util.Log.DEBUG
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.google.firebase.events.Event
-import com.google.firebase.events.EventHandler
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
-import java.util.*
 
 
 @Composable
@@ -67,7 +55,7 @@ fun CameraView(
     cameraSelector: CameraSelector,
     modifier: Modifier = Modifier,
     train: String,
-    trainPoints: List<Offset>?,
+    arrayTrainPoints: MutableList<List<Offset>>,
     navController: NavController
 
 )
@@ -106,8 +94,8 @@ fun CameraView(
             )
             {
                 CameraPreview(previewView)
-                PoseCompare(pose = detectedPose,trainPoints = trainPoints, navController)
-                Test(train, Alignment.BottomCenter)
+                PoseCompare(pose = detectedPose, arrayTrainPoints = arrayTrainPoints, navController)
+                Test(train, Alignment.BottomCenter,Color.White)
                 DetectedPose(pose = detectedPose, sourceInfo = sourceInfo)
 
                 //Timer(totalTime = 100L * 1000L, modifier = Modifier.size(200.dp))
@@ -118,7 +106,7 @@ fun CameraView(
 
 
 
-
+var Count: Int = 0
 
 
 @Composable
@@ -161,6 +149,7 @@ fun Timer(
             delay(100L)
             currentTime -= 100L
             value = currentTime / totalTime.toFloat()
+
         }
     }
     Box(
@@ -189,9 +178,16 @@ fun Timer(
             }
         }
         if(currentTime==0L) {
-            Test(train = "Well Done", Alignment.TopCenter)
+            //Test(train = "Well Done", Alignment.TopCenter)
             //timerIsFinish -> onTimerFinish(timerIsFinish)
             timerIsFinish=true
+            if(Count<2) {
+                Count += 1
+            }
+            else
+            {
+                Test(train = "Well Done", Alignment.TopCenter, Color.Green)
+            }
             onTimerFinish(timerIsFinish)
         }
     }
@@ -200,7 +196,7 @@ fun Timer(
 
 
 @Composable
-fun Test(train: String, alignment: Alignment )
+fun Test(train: String, alignment: Alignment, color: Color )
 {
     Box(
         modifier = Modifier
@@ -208,7 +204,12 @@ fun Test(train: String, alignment: Alignment )
 
         contentAlignment = alignment,
     ) {
-        Text(text = train)
+        Text(text = train,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = color
+
+        )
     }
 }
 
@@ -349,19 +350,24 @@ fun DetectedPose(
 
 
 @Composable
-fun PoseCompare(pose: Pose?, trainPoints: List<Offset>?,navController: NavController)
+fun PoseCompare(pose: Pose?, arrayTrainPoints: MutableList<List<Offset>>, navController: NavController)
 {
-    if (pose!=null)
+    if (pose != null)
     {
     //Контрольные точки
-//    val pointsConst = mutableListOf<Offset>()
-//    pointsConst.add(Offset(200F,100F))
-//    pointsConst.add(Offset(400F,100F))
+    var trainPointsFirst: List<Offset> = arrayTrainPoints[0]
+    var trainPointsSecond:     List<Offset> = arrayTrainPoints[1]
 
     var TimerStart by remember {
         mutableStateOf(false)
 
     }
+    var NextPose by remember {
+        mutableStateOf(false)
+    }
+//    var Count by remember {
+//        mutableStateOf(0)
+//    }
     var TimerFinish by remember { mutableStateOf<Boolean>(false) }
 
     //Значения с камеры
@@ -376,19 +382,19 @@ fun PoseCompare(pose: Pose?, trainPoints: List<Offset>?,navController: NavContro
 
 
 
-        if(pose!=null) {
 
-            val leftWrist = pose.getPoseLandmark(PoseLandmark.LEFT_WRIST)
+
+            val leftWrist = pose?.getPoseLandmark(PoseLandmark.LEFT_WRIST)
             val Xlw = leftWrist.position.x
             val Ylw = leftWrist.position.y
             points.add(Offset(Xlw, Ylw))
 
-            val rightWrist = pose.getPoseLandmark(PoseLandmark.RIGHT_WRIST)
+            val rightWrist = pose?.getPoseLandmark(PoseLandmark.RIGHT_WRIST)
             val Xrw = rightWrist.position.x
             val Yrw = rightWrist.position.y
             points.add(Offset(Xrw, Yrw))
 
-        }
+
 
 
         Canvas(modifier = Modifier.fillMaxSize()) {
@@ -439,29 +445,76 @@ fun PoseCompare(pose: Pose?, trainPoints: List<Offset>?,navController: NavContro
                 )
 
             }
-            if (trainPoints != null) {
-                drawPoint(trainPoints)
 
 
-                if (((points[0].x >= trainPoints[0].x - 50F) && (points[0].x <= trainPoints[0].x + 50F)) && ((points[0].y >= trainPoints[0].y - 50F) && (points[0].y <= trainPoints[0].y + 50F))
-                    || ((points[1].x >= trainPoints[1].x - 50F) && (points[1].x <= trainPoints[1].x + 50F)) && ((points[1].y >= trainPoints[1].y - 50F) && (points[1].y <= trainPoints[1].y + 50F))
-                ) {
-                    drawPoint(pointsTest)
-                    TimerStart=true
 
+            if (trainPointsFirst != null) {
+                if (!NextPose){
+                    drawPoint(trainPointsFirst)
                 }
-                else{
-                   TimerStart=false
+                else
+                {
+                    drawPoint(arrayTrainPoints[Count])
                 }
             }
         }
-        if(TimerFinish)
+
+        fun Compare(trainPoints: List<Offset>)
         {
-            TimerStart=false
+            if (((points[0].x >= trainPoints[0].x - 50F) && (points[0].x <= trainPoints[0].x + 50F)) && ((points[0].y >= trainPoints[0].y - 50F) && (points[0].y <= trainPoints[0].y + 50F))
+                || ((points[1].x >= trainPoints[1].x - 50F) && (points[1].x <= trainPoints[1].x + 50F)) && ((points[1].y >= trainPoints[1].y - 50F) && (points[1].y <= trainPoints[1].y + 50F))
+            ) {
+                //drawPoint(pointsTest)
+                TimerStart=true
+
+            }
+            else{
+                TimerStart=false
+            }
         }
 
-        if(TimerStart) {
-            Timer(totalTime = 5L * 1000L, modifier = Modifier.size(200.dp),timerStart = TimerStart, onTimerFinish = { TimerFinish = it })
+        if(arrayTrainPoints[Count] != null) {
+            if (NextPose) {
+                //Compare(arrayTrainPoints[1])
+                //NextPose=false
+                //Compare(trainPointsSecond)
+
+            }
+
+
+            Compare(trainPointsFirst)
+//        for (pose in arrayTrainPoints) {
+//            if(NextPose) {
+//                Compare(pose)
+//                NextPose=false
+//            }
+//        }
+
+
+
+            if (TimerFinish) {
+                TimerStart = false
+                NextPose = true
+
+                //Test(train = "Well Done", Alignment.TopCenter, Color.Green)
+            }
+
+            if (NextPose) {
+                Compare(arrayTrainPoints[Count])
+                //NextPose=false
+                //Compare(trainPointsSecond)
+
+            }
+
+
+            if (TimerStart) {
+                Timer(
+                    totalTime = 5L * 1000L,
+                    modifier = Modifier.size(200.dp),
+                    timerStart = TimerStart,
+                    onTimerFinish = { TimerFinish = it })
+            }
+
         }
     }
 }
@@ -569,3 +622,4 @@ private fun calculateScale(
         PreviewScaleType.CENTER_CROP -> kotlin.math.max(heightRatio, widthRatio)
     }
 }
+

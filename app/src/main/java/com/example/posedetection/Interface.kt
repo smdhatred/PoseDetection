@@ -26,6 +26,9 @@ import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -40,6 +43,7 @@ fun DashboardScreen(navController: NavController) {
         horizontalAlignment = Alignment.CenterHorizontally
     ){
         PopularFlowersList(navController)
+        CrossCard()
     }
 
 //    LazyColumn(
@@ -68,7 +72,41 @@ private fun PopularFlowersList(navController: NavController) {
 }
 var nameTrain = ""
 var infoTrain= ""
-var pointsTrain = mutableListOf<Offset>()
+var arrayPointsTrain = mutableListOf<List<Offset>>()
+
+
+@Composable
+fun CrossCard()
+{
+    Card(shape = RoundedCornerShape(20.dp),
+        backgroundColor = Color.White,
+        modifier = Modifier
+            .padding(10.dp)
+            .width(360.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp),
+        ) {
+            Text(
+                text = "Advertisement",
+
+                style = TextStyle(
+                    color = Color.Gray,
+                    fontSize = 16.sp,
+                    textAlign = TextAlign.Center
+                )
+            )
+            Image(
+                painter = painterResource(id = R.drawable.cross),
+                contentDescription = null,
+                modifier = Modifier.size(340.dp)
+            )
+
+        }
+    }
+}
+
 
 @Composable
 fun TrainCard(train: Train,navController: NavController)
@@ -82,7 +120,7 @@ fun TrainCard(train: Train,navController: NavController)
             .padding(10.dp)
             .width(180.dp)
             .clickable {
-                infoTrain = train.price
+                infoTrain = train.info
                 navController.navigate("Info")
             }
     ) {
@@ -117,7 +155,7 @@ fun TrainCard(train: Train,navController: NavController)
                     onClick = {
                         navController.navigate("Train")
                         nameTrain=train.name
-                        pointsTrain= train.pointsConst as MutableList<Offset>
+                        arrayPointsTrain= train.pointsConst as MutableList<List<Offset>>
                     },
                     modifier = Modifier.background(
                         color = Color.DarkGray,
@@ -135,11 +173,15 @@ fun TrainCard(train: Train,navController: NavController)
 @Composable
 fun CardInfo(info: String)
 {
-    Box(modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center )
+    Box(modifier = Modifier
+        .padding(horizontal = 15.dp)
+        .fillMaxSize(),contentAlignment = Alignment.Center )
     {
+
+
         Column {
-            Text(text = info)
+            Text(text = "Описание тренировки:",fontWeight = FontWeight.Bold,textAlign = TextAlign.Left)
+            Text(text = info,overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Justify)
         }
     }
 }
@@ -166,10 +208,8 @@ fun FirstScreen(navController: NavController) {
                                     DashboardScreen(navController)
                                 }
                                 1 -> {
-//                                    CameraPreview(
-//                                        cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA,
-//                                        train = "Что это?",
-//                                        trainPoints = null)
+                                    //CalendarScreen(onBackPressed = { finish() })
+                                    CheckScreen()
                                 }
 
                             }

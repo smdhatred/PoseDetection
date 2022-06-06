@@ -5,14 +5,28 @@ import androidx.compose.ui.geometry.Offset
 object TrainsData{
     val list = listOf(
         Train(name = "Train One",
-            price = "$570.00",
+            price = "$23.00",
             image = R.drawable.train_one,
-            pointsConst = mutableListOf(Offset(300F,200F),Offset(200F,200F))
+            info = "Положение стоя, ноги сдвинуты вплотную, руки располагаются вдоль тела." +
+                    " Делается длинный выпад правой ногой. Руки выбрасываются параллельно, затем поднимаются и соединяются над головой. В таком положении делается пауза на несколько секунд. " +
+                    "Далее растягиваются мышцы выдвинутой ноги. Осуществляется возврат в начальную позицию. Необходимо проделатьто же самое с другой ногой.",
+            pointsConst = mutableListOf(mutableListOf(Offset(300F,150F),Offset(150F,150F)),mutableListOf(Offset(300F,250F),Offset(150F,250F)),mutableListOf(Offset(300F,350F),Offset(150F,350F)))
         ),
         Train(name = "Train Two",
-            price = "$650.00",
+            price = "$20.00",
             image = R.drawable.train_two,
-            pointsConst = mutableListOf(Offset(200F,100F),Offset(300F,100F))
+            info = "Положение стоя, ноги сдвинуты вплотную, руки располагаются вдоль тела." +
+                    " Делается длинный выпад правой ногой. Руки выбрасываются параллельно, затем поднимаются и соединяются над головой. В таком положении делается пауза на несколько секунд. " +
+                    "Далее растягиваются мышцы выдвинутой ноги. Осуществляется возврат в начальную позицию. Необходимо проделатьто же самое с другой ногой.",
+            pointsConst = mutableListOf(mutableListOf(Offset(300F,150F),Offset(150F,150F)),mutableListOf(Offset(300F,150F),Offset(150F,150F)))
+        ),
+        Train(name = "Train Three",
+            price = "$17.00",
+            image = R.drawable.train_three,
+            info = "Положение стоя, ноги сдвинуты вплотную, руки располагаются вдоль тела." +
+                    " Делается длинный выпад правой ногой. Руки выбрасываются параллельно, затем поднимаются и соединяются над головой. В таком положении делается пауза на несколько секунд. " +
+                    "Далее растягиваются мышцы выдвинутой ноги. Осуществляется возврат в начальную позицию. Необходимо проделатьто же самое с другой ногой.",
+            pointsConst = mutableListOf(mutableListOf(Offset(300F,150F),Offset(150F,150F)),mutableListOf(Offset(300F,150F),Offset(150F,150F)))
         )
     )
 }
