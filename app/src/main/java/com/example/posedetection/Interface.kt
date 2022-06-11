@@ -31,18 +31,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.os.bundleOf
 import androidx.navigation.NavController
 //import androidx.navigation.compose.navigate
 
 
 @Composable
-fun DashboardScreen(navController: NavController) {
+fun DashboardScreen(navController: NavController, onTrainChoosen:(Train) -> Unit) {
 
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ){
-        PopularFlowersList(navController)
+        PopularFlowersList(navController,onTrainChoosen)
         CrossCard()
     }
 
@@ -61,12 +62,12 @@ fun DashboardScreen(navController: NavController) {
 }
 
 @Composable
-private fun PopularFlowersList(navController: NavController) {
+private fun PopularFlowersList(navController: NavController, onTrainChoosen:(Train) -> Unit) {
     LazyRow(
         modifier = Modifier.fillMaxWidth()
     ) {
         items(TrainsData.list) { item ->
-            TrainCard(item,navController)
+            TrainCard(item,navController, onTrainChoosen)
         }
     }
 }
@@ -109,7 +110,7 @@ fun CrossCard()
 
 
 @Composable
-fun TrainCard(train: Train,navController: NavController)
+fun TrainCard(train: Train, navController: NavController, onTrainChoosen:(Train) -> Unit)
 {
     //val navController = rememberNavController()
     var info: String = "test"
@@ -120,8 +121,9 @@ fun TrainCard(train: Train,navController: NavController)
             .padding(10.dp)
             .width(180.dp)
             .clickable {
-                infoTrain = train.info
+                //infoTrain = train.info
                 navController.navigate("Info")
+                onTrainChoosen(train)
             }
     ) {
         Column(
@@ -132,7 +134,7 @@ fun TrainCard(train: Train,navController: NavController)
             Image(
                 painter = painterResource(id = train.image),
                 contentDescription = null,
-                modifier = Modifier.size(140.dp),
+                modifier = Modifier.size(140.dp)
             )
             Row(modifier = Modifier.padding(top = 20.dp)) {
                 Column(modifier = Modifier.weight(1f)) {
@@ -154,8 +156,7 @@ fun TrainCard(train: Train,navController: NavController)
                 IconButton(
                     onClick = {
                         navController.navigate("Train")
-                        nameTrain=train.name
-                        arrayPointsTrain= train.pointsConst as MutableList<List<Offset>>
+                        onTrainChoosen(train)
                     },
                     modifier = Modifier.background(
                         color = Color.DarkGray,
@@ -187,7 +188,7 @@ fun CardInfo(info: String)
 }
 
 @Composable
-fun FirstScreen(navController: NavController) {
+fun FirstScreen(navController: NavController, onTrainChoosen:(Train) -> Unit) {
     val selectedIndex = remember { mutableStateOf(0) }
     Surface(modifier = Modifier.fillMaxSize()) {
 
@@ -205,7 +206,7 @@ fun FirstScreen(navController: NavController) {
                         Box(modifier = Modifier.padding(bottom = 96.dp)) {
                             when (selectedIndex.value) {
                                 0 -> {
-                                    DashboardScreen(navController)
+                                    DashboardScreen(navController, onTrainChoosen)
                                 }
                                 1 -> {
                                     //CalendarScreen(onBackPressed = { finish() })

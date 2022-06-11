@@ -8,12 +8,14 @@ import androidx.activity.compose.setContent
 import androidx.camera.core.CameraSelector
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.posedetection.ui.theme.PoseDetectionTheme
 
 
@@ -58,11 +60,12 @@ fun initView()
             Surface(color = MaterialTheme.colors.background)
             {
                 //val navController = rememberNavController()
+                var ChoosenTrain by remember { mutableStateOf<Train?>(null)}
                 NavHost(navController = navController, startDestination = "First Screen")
                 {
-                    composable("First Screen"){ FirstScreen(navController) }
-                    composable("Train"){ CameraView(cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA, train = nameTrain, arrayTrainPoints = arrayPointsTrain, navController = navController)}
-                    composable("Info"){ CardInfo(infoTrain)}
+                    composable("First Screen"){ FirstScreen(navController, onTrainChoosen = { ChoosenTrain = it }) }
+                    composable("Train"){ CameraView(cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA, navController = navController, train = ChoosenTrain)}
+                    composable("Info") { ChoosenTrain?.let { it1 -> CardInfo(it1.info) } }
 
                 }
                 // FirstScreen()

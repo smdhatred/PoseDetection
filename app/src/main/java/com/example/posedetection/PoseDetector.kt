@@ -10,6 +10,7 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,6 +19,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -43,6 +45,7 @@ import com.google.mlkit.vision.pose.PoseLandmark
 import com.google.mlkit.vision.pose.defaults.PoseDetectorOptions
 
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.sp
@@ -54,8 +57,8 @@ import kotlinx.coroutines.delay
 fun CameraView(
     cameraSelector: CameraSelector,
     modifier: Modifier = Modifier,
-    train: String,
-    arrayTrainPoints: MutableList<List<Offset>>,
+    train: Train?,
+    //arrayTrainPoints: MutableList<List<Offset>>,
     navController: NavController
 
 )
@@ -94,8 +97,12 @@ fun CameraView(
             )
             {
                 CameraPreview(previewView)
-                PoseCompare(pose = detectedPose, arrayTrainPoints = arrayTrainPoints, navController)
-                Test(train, Alignment.BottomCenter,Color.White)
+                if (train != null) {
+                    PoseCompare(pose = detectedPose, arrayTrainPoints = train.pointsConst as MutableList<List<Offset>>, images = train.imageConst,  navController)
+                }
+                if (train != null) {
+                    Test(train.name, Alignment.BottomCenter,Color.White)
+                }
                 DetectedPose(pose = detectedPose, sourceInfo = sourceInfo)
 
                 //Timer(totalTime = 100L * 1000L, modifier = Modifier.size(200.dp))
@@ -350,13 +357,13 @@ fun DetectedPose(
 
 
 @Composable
-fun PoseCompare(pose: Pose?, arrayTrainPoints: MutableList<List<Offset>>, navController: NavController)
+fun PoseCompare(pose: Pose?, arrayTrainPoints: MutableList<List<Offset>>, images: List<Int>, navController: NavController)
 {
     if (pose != null)
     {
     //Контрольные точки
     var trainPointsFirst: List<Offset> = arrayTrainPoints[0]
-    var trainPointsSecond:     List<Offset> = arrayTrainPoints[1]
+    var imageFirst: Int = images[0]
 
     var TimerStart by remember {
         mutableStateOf(false)
@@ -365,9 +372,6 @@ fun PoseCompare(pose: Pose?, arrayTrainPoints: MutableList<List<Offset>>, navCon
     var NextPose by remember {
         mutableStateOf(false)
     }
-//    var Count by remember {
-//        mutableStateOf(0)
-//    }
     var TimerFinish by remember { mutableStateOf<Boolean>(false) }
 
     //Значения с камеры
@@ -376,12 +380,6 @@ fun PoseCompare(pose: Pose?, arrayTrainPoints: MutableList<List<Offset>>, navCon
 
     val pointsTest = mutableListOf<Offset>()
     pointsTest.add(Offset(300F,600F))
-
-
-    //points.add(Offset(x.toFloat(), y.toFloat()))
-
-
-
 
 
             val leftWrist = pose?.getPoseLandmark(PoseLandmark.LEFT_WRIST)
@@ -441,7 +439,6 @@ fun PoseCompare(pose: Pose?, arrayTrainPoints: MutableList<List<Offset>>, navCon
                     pointMode = Points,
                     color = Color.Blue
 
-
                 )
 
             }
@@ -474,22 +471,9 @@ fun PoseCompare(pose: Pose?, arrayTrainPoints: MutableList<List<Offset>>, navCon
         }
 
         if(arrayTrainPoints[Count] != null) {
-            if (NextPose) {
-                //Compare(arrayTrainPoints[1])
-                //NextPose=false
-                //Compare(trainPointsSecond)
-
-            }
-
 
             Compare(trainPointsFirst)
-//        for (pose in arrayTrainPoints) {
-//            if(NextPose) {
-//                Compare(pose)
-//                NextPose=false
-//            }
-//        }
-
+            //ShowImage(image = images[0])
 
 
             if (TimerFinish) {
@@ -501,9 +485,11 @@ fun PoseCompare(pose: Pose?, arrayTrainPoints: MutableList<List<Offset>>, navCon
 
             if (NextPose) {
                 Compare(arrayTrainPoints[Count])
-                //NextPose=false
-                //Compare(trainPointsSecond)
-
+                ShowImage(image = images[Count])
+            }
+            else
+            {
+                ShowImage(image = images[0])
             }
 
 
@@ -517,6 +503,17 @@ fun PoseCompare(pose: Pose?, arrayTrainPoints: MutableList<List<Offset>>, navCon
 
         }
     }
+}
+
+
+@Composable
+fun ShowImage(image: Int)
+{
+    Image(
+        painter = painterResource(id = image),
+        contentDescription = null,
+        modifier = Modifier.fillMaxSize().alpha(0.5F)
+    )
 }
 
 
